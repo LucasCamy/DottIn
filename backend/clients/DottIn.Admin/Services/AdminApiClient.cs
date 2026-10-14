@@ -178,29 +178,6 @@ public class AdminApiClient(HttpClient http, AdminQueryCache cache, DashboardSes
             async () => await http.GetFromJsonAsync<List<BranchSummary>>($"/api/branches/owner/{ownerId}") ?? [],
             forceRefresh);
 
-    public Task<BranchManagement> GetBranchManagementAsync(
-        bool forceRefresh = false,
-        CancellationToken cancellationToken = default)
-        => cache.GetOrCreateAsync(
-            "branch-management",
-            TimeSpan.FromMinutes(5),
-            async () => await http.GetFromJsonAsync<BranchManagement>(
-                "/api/branches/management",
-                cancellationToken) ?? throw new ApiException("Não foi possível carregar as filiais."),
-            forceRefresh,
-            cancellationToken);
-
-    public async Task<CreatedBranch> CreateManagedBranchAsync(
-        CreateManagedBranchRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        using var response = await http.PostAsJsonAsync("/api/branches", request, cancellationToken);
-        await EnsureSuccessOrThrowAsync(response);
-        cache.Invalidate("branch-management");
-        return await response.Content.ReadFromJsonAsync<CreatedBranch>(cancellationToken: cancellationToken)
-            ?? throw new ApiException("Não foi possível criar a filial.");
-    }
-
     public Task<BranchClockResponse> GetBranchClockAsync(
         Guid branchId,
         CancellationToken cancellationToken = default)
